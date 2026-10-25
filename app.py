@@ -1,4 +1,10 @@
 import os
+
+# Render CPU performance settings — set before importing torch
+os.environ.setdefault("OMP_NUM_THREADS", "1")
+os.environ.setdefault("MKL_NUM_THREADS", "1")
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+
 import math
 import uuid
 from pathlib import Path
@@ -24,7 +30,40 @@ from utils.utils import adaptive_instance_normalization
 
 
 # =========================================================
-# 1. PROJECT CONFIGURATION
+# 1. CPU PERFORMANCE SETTINGS
+# =========================================================
+
+try:
+    torch.set_num_threads(1)
+except RuntimeError:
+    pass
+
+try:
+    torch.set_num_interop_threads(1)
+except RuntimeError:
+    pass
+
+
+def positive_int_env(name, default, minimum=64):
+    """Read a positive integer environment variable safely."""
+    try:
+        value = int(os.environ.get(name, str(default)))
+    except (TypeError, ValueError):
+        value = default
+
+    return max(minimum, value)
+
+
+# Maximum image side used by the neural network.
+# Lower values generally mean faster inference on CPU.
+INFERENCE_MAX_SIDE = positive_int_env("ADAIN_MAX_SIDE", 320)
+
+# Avoid unnecessarily large output images.
+OUTPUT_MAX_SIDE = positive_int_env("ADAIN_MAX_OUTPUT_SIDE", 1600)
+
+
+# =========================================================
+# 2. PROJECT CONFIGURATION
 # =========================================================
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -35,7 +74,6 @@ EXAMPLES_DIR = BASE_DIR / "examples"
 
 VGG_PATH = BASE_DIR / "vgg_normalised.pth"
 
-# NEW alpha-aware trained decoder
 DECODER_PATH = (
     BASE_DIR
     / "experiment"
@@ -55,6 +93,7 @@ app.config["SECRET_KEY"] = os.environ.get(
     "FLASK_SECRET_KEY",
     "local-development-key-change-before-deployment",
 )
+
 app.config["UPLOAD_FOLDER"] = str(UPLOAD_DIR)
 app.config["ALLOWED_EXTENSIONS"] = {"png", "jpg", "jpeg"}
 
@@ -62,7 +101,7 @@ Bootstrap(app)
 
 
 # =========================================================
-# 2. DEVICE SELECTION
+# 3. DEVICE SELECTION
 # =========================================================
 
 def select_device():
@@ -80,11 +119,13 @@ def select_device():
 
 device = select_device()
 
-print("Using device:", device)
+print("Using device:", device, flush=True)
+print("Inference maximum side:", INFERENCE_MAX_SIDE, flush=True)
+print("Output maximum side:", OUTPUT_MAX_SIDE, flush=True)
 
 
 # =========================================================
-# 3. LOAD MODELS
+# 4. LOAD MODELS
 # =========================================================
 
 if not VGG_PATH.is_file():
@@ -97,11 +138,11 @@ if not DECODER_PATH.is_file():
         f"Trained decoder not found: {DECODER_PATH}"
     )
 
-print("Loading VGG encoder...")
+print("Loading VGG encoder...", flush=True)
 
 encoder = VGGEncoder(str(VGG_PATH)).to(device)
 
-print("Loading NEW alpha-aware decoder...")
+print("Loading alpha-aware decoder...", flush=True)
 
 decoder = Decoder().to(device)
 
@@ -116,16 +157,18 @@ decoder.load_state_dict(
 encoder.eval()
 decoder.eval()
 
-# Encoder weights stay frozen during inference.
 for parameter in encoder.parameters():
     parameter.requires_grad_(False)
 
-print("VGG loaded:", VGG_PATH)
-print("NEW DECODER LOADED:", DECODER_PATH)
+for parameter in decoder.parameters():
+    parameter.requires_grad_(False)
+
+print("VGG loaded:", VGG_PATH, flush=True)
+print("DECODER LOADED:", DECODER_PATH, flush=True)
 
 
 # =========================================================
-# 4. UPLOAD FORM
+# 5. UPLOAD FORM
 # =========================================================
 
 class UploadForm(FlaskForm):
@@ -138,7 +181,7 @@ class UploadForm(FlaskForm):
 
 
 # =========================================================
-# 5. FILE HELPERS
+# 6. FILE AND IMAGE HELPERS
 # =========================================================
 
 def allowed_file(filename):
@@ -151,10 +194,7 @@ def allowed_file(filename):
 
 
 def save_uploaded_file(uploaded_file, prefix):
-    """
-    Store uploads under unique names.
-    Existing inputs and generated outputs are not overwritten.
-    """
+    """Save an uploaded image using a unique filename."""
 
     original_name = secure_filename(
         uploaded_file.filename or ""
@@ -176,12 +216,7 @@ def save_uploaded_file(uploaded_file, prefix):
 
 
 def get_existing_upload(field_name):
-    """
-    Read a previously uploaded image referenced by the form.
-
-    The template contains duplicate hidden fields, so check
-    submitted values in order and use the first valid filename.
-    """
+    """Safely reuse an image previously selected in the UI."""
 
     upload_root = UPLOAD_DIR.resolve()
 
@@ -191,7 +226,7 @@ def get_existing_upload(field_name):
 
         filename = value.strip()
 
-        # Only accept a filename, not a supplied filesystem path.
+        # Accept only a filename, not a filesystem path.
         if os.path.basename(filename) != filename:
             continue
 
@@ -209,113 +244,46 @@ def get_existing_upload(field_name):
     return None
 
 
-def save_output_tensor(tensor, path, original_size):
-    """Convert a generated tensor to an image at original dimensions."""
+def resize_longest_side(image, max_side):
+    """Resize proportionally without cropping the image."""
 
-    image_tensor = tensor.detach().cpu().squeeze(0).clamp(0, 1)
+    width, height = image.size
+    longest_side = max(width, height)
+
+    if longest_side <= max_side:
+        return image
+
+    scale = max_side / float(longest_side)
+
+    new_width = max(1, round(width * scale))
+    new_height = max(1, round(height * scale))
+
+    return image.resize(
+        (new_width, new_height),
+        Image.Resampling.LANCZOS,
+    )
+
+
+def save_output_tensor(tensor, path, output_size):
+    """Save generated tensor as a PNG at the requested dimensions."""
+
+    image_tensor = (
+        tensor.detach()
+        .cpu()
+        .squeeze(0)
+        .clamp(0, 1)
+    )
 
     output_image = transforms.ToPILImage()(image_tensor)
 
-    if output_image.size != original_size:
+    if output_image.size != output_size:
         output_image = output_image.resize(
-            original_size,
+            output_size,
             Image.Resampling.LANCZOS,
         )
 
-    output_image.save(path, format="PNG")
+    output_image.save(str(path), format="PNG")
 
-
-# =========================================================
-# 6. STYLE TRANSFER
-# =========================================================
-
-def style_transfer(
-    content_image,
-    style_image,
-    encoder,
-    decoder,
-    alpha,
-    device,
-):
-    """
-    Apply AdaIN style transfer using the trained decoder.
-
-    Alpha 0 means no stylization.
-    Alpha 1 means maximum AdaIN stylization.
-    """
-
-    if not math.isfinite(alpha) or not 0.0 <= alpha <= 1.0:
-        raise ValueError(
-            "Alpha must be a number between 0 and 1."
-        )
-
-    # Normally handled separately in the route, but retain
-    # the same behavior if this function is called directly.
-    if alpha == 0.0:
-        return (
-            transforms.ToTensor()(content_image)
-            .unsqueeze(0)
-            .to(device)
-        )
-
-    # Preserve aspect ratio; do not center-crop the face.
-    transform = transforms.Compose([
-        transforms.Resize(512),
-        transforms.ToTensor(),
-    ])
-
-    content_tensor = (
-        transform(content_image)
-        .unsqueeze(0)
-        .to(device)
-    )
-
-    style_tensor = (
-        transform(style_image)
-        .unsqueeze(0)
-        .to(device)
-    )
-
-    with torch.inference_mode():
-        content_features = encoder(content_tensor)
-        style_features = encoder(style_tensor)
-
-        content_feat = content_features[-1]
-        style_feat = style_features[-1]
-
-        # Standard Adaptive Instance Normalization
-        target = adaptive_instance_normalization(
-            content_feat,
-            style_feat,
-        )
-
-        # Alpha interpolation
-        blended_features = (
-            (1.0 - alpha) * content_feat
-            + alpha * target
-        )
-
-        generated = decoder(blended_features)
-        generated = generated.clamp(0, 1)
-
-        # VGG pooling may round dimensions. Match the
-        # preprocessed content tensor's dimensions.
-        target_height = content_tensor.shape[-2]
-        target_width = content_tensor.shape[-1]
-
-        generated = generated[
-            :,
-            :,
-            :target_height,
-            :target_width,
-        ]
-
-    return generated
-
-
-# =========================================================
-# 7. AJAX HELPER
-# =========================================================
 
 def is_ajax_request():
     return (
@@ -331,11 +299,9 @@ def error_response(message, status=400):
             "error": message,
         }), status
 
-    form = UploadForm()
-
     return render_template(
         "index.html",
-        form=form,
+        form=UploadForm(),
         result_image=None,
         content_image=None,
         style_image=None,
@@ -345,11 +311,104 @@ def error_response(message, status=400):
 
 
 # =========================================================
+# 7. STYLE TRANSFER
+# =========================================================
+
+def style_transfer(
+    content_image,
+    style_image,
+    encoder,
+    decoder,
+    alpha,
+    device,
+):
+    """
+    Apply AdaIN style transfer.
+
+    Alpha 0 = original image.
+    Alpha 1 = full style transfer.
+    """
+
+    if not math.isfinite(alpha) or not 0.0 <= alpha <= 1.0:
+        raise ValueError(
+            "Alpha must be a number between 0 and 1."
+        )
+
+    if alpha == 0.0:
+        return (
+            transforms.ToTensor()(content_image)
+            .unsqueeze(0)
+            .to(device)
+        )
+
+    # Reduce the inference workload while preserving aspect ratio.
+    content_small = resize_longest_side(
+        content_image,
+        INFERENCE_MAX_SIDE,
+    )
+
+    style_small = resize_longest_side(
+        style_image,
+        INFERENCE_MAX_SIDE,
+    )
+
+    to_tensor = transforms.ToTensor()
+
+    content_tensor = (
+        to_tensor(content_small)
+        .unsqueeze(0)
+        .to(device)
+    )
+
+    style_tensor = (
+        to_tensor(style_small)
+        .unsqueeze(0)
+        .to(device)
+    )
+
+    with torch.inference_mode():
+
+        content_features = encoder(content_tensor)
+        style_features = encoder(style_tensor)
+
+        content_feat = content_features[-1]
+        style_feat = style_features[-1]
+
+        target = adaptive_instance_normalization(
+            content_feat,
+            style_feat,
+        )
+
+        # Alpha interpolation
+        blended_features = (
+            (1.0 - alpha) * content_feat
+            + alpha * target
+        )
+
+        generated = decoder(blended_features)
+        generated = generated.clamp(0, 1)
+
+        # Match the preprocessed content dimensions.
+        target_height = content_tensor.shape[-2]
+        target_width = content_tensor.shape[-1]
+
+        generated = generated[
+            :,
+            :,
+            :target_height,
+            :target_width,
+        ]
+
+    return generated
+
+
+# =========================================================
 # 8. MAIN ROUTE
 # =========================================================
 
 @app.route("/", methods=["GET", "POST"])
 def index():
+
     form = UploadForm()
 
     result_image = None
@@ -360,14 +419,19 @@ def index():
 
     if request.method == "POST":
 
-        # ------------------------------
+        # ---------------------------------
         # Read and validate alpha
-        # ------------------------------
+        # ---------------------------------
 
         try:
-            alpha = float(request.form.get("alpha", "0.5"))
+            alpha = float(
+                request.form.get("alpha", "0.5")
+            )
 
-            if not math.isfinite(alpha) or not 0.0 <= alpha <= 1.0:
+            if (
+                not math.isfinite(alpha)
+                or not 0.0 <= alpha <= 1.0
+            ):
                 raise ValueError(
                     "Alpha must be between 0 and 1."
                 )
@@ -377,15 +441,14 @@ def index():
                 str(exc) or "Invalid alpha value."
             )
 
-        print("=" * 40)
-        print("Alpha received:", alpha)
-        print("Active decoder:", DECODER_PATH)
-        print("=" * 40)
+        print("=" * 40, flush=True)
+        print("Alpha received:", alpha, flush=True)
+        print("Active decoder:", DECODER_PATH, flush=True)
+        print("=" * 40, flush=True)
 
-        # ------------------------------
-        # Save new uploads or reuse
-        # previously uploaded images
-        # ------------------------------
+        # ---------------------------------
+        # Save uploads or reuse selected files
+        # ---------------------------------
 
         try:
             content_file = request.files.get("content")
@@ -422,14 +485,18 @@ def index():
         content_path = UPLOAD_DIR / content_filename
         style_path = UPLOAD_DIR / style_filename
 
-        if not content_path.is_file() or not style_path.is_file():
+        if (
+            not content_path.is_file()
+            or not style_path.is_file()
+        ):
             return error_response(
-                "An uploaded image could not be found. Please upload it again."
+                "An uploaded image could not be found. "
+                "Please upload it again."
             )
 
-        # ------------------------------
+        # ---------------------------------
         # Run style transfer
-        # ------------------------------
+        # ---------------------------------
 
         try:
             with Image.open(content_path) as source:
@@ -438,26 +505,46 @@ def index():
             with Image.open(style_path) as source:
                 style_image = source.convert("RGB")
 
-            print("Running style transfer...")
-            print("Content size:", content_image.size)
-            print("Style size:", style_image.size)
+            print("Running style transfer...", flush=True)
+            print(
+                "Content size:",
+                content_image.size,
+                flush=True,
+            )
+            print(
+                "Style size:",
+                style_image.size,
+                flush=True,
+            )
 
-            # Unique PNG filename: no overwriting old results.
+            # Unique name: never overwrite previous generated results.
             result_filename = (
                 f"stylized_{uuid.uuid4().hex}.png"
             )
+
             result_path = UPLOAD_DIR / result_filename
 
             if alpha == 0.0:
-                # Save the original content directly.
-                # No decoder, resizing, or interpolation.
+
+                # Alpha 0 returns the original content image.
                 content_image.save(
-                    result_path,
+                    str(result_path),
                     format="PNG",
                 )
+
             else:
-                generated = style_transfer(
+
+                # Avoid oversized output images on small servers.
+                # Normal-sized images are not enlarged here.
+                content_for_output = resize_longest_side(
                     content_image,
+                    OUTPUT_MAX_SIDE,
+                )
+
+                output_size = content_for_output.size
+
+                generated = style_transfer(
+                    content_for_output,
                     style_image,
                     encoder,
                     decoder,
@@ -468,17 +555,18 @@ def index():
                 save_output_tensor(
                     generated,
                     result_path,
-                    original_size=content_image.size,
+                    output_size=output_size,
                 )
 
             result_image = result_filename
 
-            print("Style transfer completed:", result_path)
+            print(
+                "Style transfer completed:",
+                result_path,
+                flush=True,
+            )
 
-            # ------------------------------
-            # AJAX response for the frontend
-            # ------------------------------
-
+            # Keep the JSON format expected by index.html.
             if is_ajax_request():
                 return jsonify({
                     "success": True,
@@ -491,7 +579,10 @@ def index():
                 })
 
         except Exception as exc:
-            app.logger.exception("Style transfer failed")
+            app.logger.exception(
+                "Style transfer failed"
+            )
+
             error = f"Style transfer failed: {exc}"
 
             if is_ajax_request():
@@ -500,9 +591,9 @@ def index():
                     "error": error,
                 }), 500
 
-    # ------------------------------
+    # ---------------------------------
     # Normal HTML response
-    # ------------------------------
+    # ---------------------------------
 
     return render_template(
         "index.html",
@@ -536,7 +627,7 @@ def send_examples(filename):
 
 
 # =========================================================
-# 10. START APPLICATION
+# 10. LOCAL STARTUP
 # =========================================================
 
 if __name__ == "__main__":
