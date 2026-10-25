@@ -4,15 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AdaIN Style Transfer</title>
+
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
 <style>
     body {
         font-family: 'Inter', sans-serif;
         background-color: #0f172a;
         color: #e2e8f0;
-        background-image: 
+        background-image:
             linear-gradient(rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.95)),
             url('https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=1974&auto=format&fit=crop');
         background-size: cover;
@@ -20,11 +22,18 @@
         background-position: center;
         min-height: 100vh;
     }
+
+    html {
+        scroll-behavior: smooth;
+        scroll-padding-top: 90px;
+    }
+
     .header-section {
-        padding: 4rem 0 2rem;
+        padding: 7rem 0 2rem;
         text-align: center;
         position: relative;
     }
+
     .header-section h1 {
         font-family: 'Orbitron', sans-serif;
         font-weight: 700;
@@ -35,12 +44,15 @@
         text-shadow: 0 0 30px rgba(192, 132, 252, 0.3);
         margin-bottom: 1rem;
     }
+
     .header-section .lead {
         font-size: 1.15rem;
         color: #94a3b8;
-        max-width: 600px;
+        max-width: 700px;
         margin: 0 auto;
+        line-height: 1.7;
     }
+
     .card {
         background: rgba(30, 41, 59, 0.6);
         backdrop-filter: blur(12px);
@@ -50,9 +62,11 @@
         transition: transform 0.3s ease, box-shadow 0.3s ease;
         overflow: hidden;
     }
+
     .card:hover {
         border-color: rgba(129, 140, 248, 0.3);
     }
+
     .card-header {
         background: rgba(255, 255, 255, 0.05);
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -62,6 +76,7 @@
         text-transform: uppercase;
         font-size: 0.9rem;
     }
+
     .preview-image {
         width: 100%;
         height: 280px;
@@ -76,23 +91,30 @@
         overflow: hidden;
         position: relative;
     }
-    .preview-image img, .card-body img {
+
+    .preview-image img,
+    .card-body img {
         width: 100% !important;
         height: 100% !important;
         object-fit: contain !important;
         border-radius: 8px;
     }
+
     #resultSection .card-body {
         padding: 0;
         background-color: #0f172a;
         text-align: center;
     }
+
     #resultSection img {
         max-height: 450px;
         width: auto !important;
+        max-width: 100%;
         margin: 0 auto;
         display: block;
+        object-fit: contain;
     }
+
     .btn-primary {
         background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
         border: none;
@@ -105,37 +127,49 @@
         letter-spacing: 2px;
         box-shadow: 0 10px 20px -10px rgba(168, 85, 247, 0.5);
     }
+
     .btn-primary:hover {
         background: linear-gradient(135deg, #4f46e5 0%, #9333ea 100%);
         box-shadow: 0 20px 30px -10px rgba(168, 85, 247, 0.6);
     }
+
+    .btn-primary:disabled {
+        opacity: 0.65;
+        cursor: wait;
+    }
+
     .btn-glow {
         animation: glowing 2s infinite;
     }
+
     @keyframes glowing {
         0% { box-shadow: 0 0 5px #a855f7; }
         50% { box-shadow: 0 0 20px #a855f7, 0 0 10px #6366f1; }
         100% { box-shadow: 0 0 5px #a855f7; }
     }
-    /* Custom Range Slider */
+
     .range-wrap {
         position: relative;
         margin: 2rem auto;
         width: 100%;
         max-width: 90%;
     }
+
     #alphaRange {
         -webkit-appearance: none;
+        appearance: none;
         width: 100%;
         height: 12px;
         background: rgba(30, 41, 59, 0.8);
         border-radius: 15px;
         outline: none;
         border: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+        box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
     }
+
     #alphaRange::-webkit-slider-thumb {
         -webkit-appearance: none;
+        appearance: none;
         height: 24px;
         width: 24px;
         border-radius: 50%;
@@ -145,6 +179,16 @@
         box-shadow: 0 0 10px #c084fc, 0 0 20px #818cf8;
         border: 3px solid #1e293b;
     }
+
+    #alphaRange::-moz-range-thumb {
+        height: 20px;
+        width: 20px;
+        border-radius: 50%;
+        background: #fff;
+        cursor: pointer;
+        border: 3px solid #1e293b;
+    }
+
     .range-value {
         position: absolute;
         top: -40px;
@@ -161,20 +205,25 @@
         transition: opacity 0.3s;
         pointer-events: none;
     }
-    .range-wrap:hover .range-value {
+
+    .range-wrap:hover .range-value,
+    .range-wrap:focus-within .range-value {
         opacity: 1;
     }
+
     .form-control {
         background-color: #1e293b;
         border: 1px solid #334155;
         color: #f8fafc;
     }
+
     .form-control:focus {
         background-color: #1e293b;
         border-color: #818cf8;
         color: #f8fafc;
         box-shadow: 0 0 0 0.25rem rgba(129, 140, 248, 0.25);
     }
+
     .form-control::file-selector-button {
         background-color: #334155;
         color: #f8fafc;
@@ -183,48 +232,386 @@
         margin-right: 0.75rem;
         border-radius: 0.25rem;
     }
-    ::-webkit-scrollbar {
-        width: 10px;
+
+    .navbar {
+        background: rgba(15, 23, 42, 0.8);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
-    ::-webkit-scrollbar-track {
-        background: #0f172a; 
+
+    .navbar-brand {
+        font-family: 'Orbitron', sans-serif;
+        font-weight: 700;
+        font-size: 1.5rem;
+        background: linear-gradient(to right, #818cf8, #c084fc);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
     }
-    ::-webkit-scrollbar-thumb {
-        background: #334155; 
-        border-radius: 5px;
+
+    .nav-link {
+        color: #e2e8f0 !important;
+        font-weight: 500;
+        margin-left: 1rem;
     }
-    .orb {
-        position: fixed;
-        border-radius: 50%;
-        filter: blur(100px);
-        z-index: 0;
-        opacity: 0.4;
-        pointer-events: none;
+
+    .header-actions {
+        margin-top: 1.5rem;
+        display: flex;
+        justify-content: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
     }
-    .orb-1 { top: -10%; left: -10%; width: 600px; height: 600px; background: radial-gradient(circle, #4f46e5, transparent 70%); }
-    .orb-2 { bottom: -10%; right: -10%; width: 500px; height: 500px; background: radial-gradient(circle, #c084fc, transparent 70%); }
-    .scanlines {
-        position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
-        background-size: 100% 4px;
-        z-index: 9998;
-        pointer-events: none;
-        opacity: 0.6;
-    }    
-    #neuralCanvas {
-        position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        z-index: 0;
-        pointer-events: none;
+
+    .btn-soft {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.55rem;
+        border: 1px solid rgba(196, 181, 253, 0.45);
+        color: #e9d5ff;
+        background: rgba(129, 140, 248, 0.09);
+        border-radius: 999px;
+        padding: 0.75rem 1.2rem;
+        text-decoration: none;
+        font-weight: 600;
+        transition: transform 0.2s, background 0.2s, border-color 0.2s;
     }
-    .header-section, .container, .footer-section {
-        position: relative;
-        z-index: 1;
-    }    
+
+    .btn-soft:hover {
+        color: #fff;
+        background: rgba(129, 140, 248, 0.2);
+        border-color: #a5b4fc;
+        transform: translateY(-2px);
+    }
+
+    .page-section {
+        margin-top: 5rem;
+    }
+
+    .section-heading {
+        max-width: 760px;
+        margin: 0 auto 2rem;
+        text-align: center;
+    }
+
+    .section-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #c4b5fd;
+        background: rgba(129, 140, 248, 0.12);
+        border: 1px solid rgba(196, 181, 253, 0.2);
+        border-radius: 999px;
+        padding: 0.4rem 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-size: 0.72rem;
+        font-weight: 700;
+    }
+
+    .section-heading h2 {
+        color: #f8fafc;
+        font-family: 'Orbitron', sans-serif;
+        font-weight: 700;
+        font-size: clamp(1.7rem, 3vw, 2.6rem);
+        margin: 1rem 0 0.75rem;
+    }
+
+    .section-heading p {
+        color: #aab7cf;
+        line-height: 1.75;
+        margin: 0 auto;
+    }
+
+    .demo-card {
+        height: 100%;
+        background: linear-gradient(145deg, rgba(30, 41, 59, 0.94), rgba(15, 23, 42, 0.86));
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        border-radius: 22px;
+        overflow: hidden;
+        box-shadow: 0 20px 55px rgba(0, 0, 0, 0.22);
+        transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .demo-card:hover {
+        transform: translateY(-5px);
+        border-color: rgba(167, 139, 250, 0.65);
+        box-shadow: 0 24px 60px rgba(79, 70, 229, 0.15);
+    }
+
+    .demo-card-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1.25rem 1.25rem 0.75rem;
+    }
+
+    .demo-card-top h3 {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #f8fafc;
+        margin: 0 0 0.35rem;
+    }
+
+    .demo-card-top p {
+        color: #94a3b8;
+        font-size: 0.86rem;
+        line-height: 1.55;
+        margin: 0;
+    }
+
+    .demo-number {
+        flex: 0 0 auto;
+        display: grid;
+        place-items: center;
+        width: 39px;
+        height: 39px;
+        border-radius: 12px;
+        background: rgba(139, 92, 246, 0.16);
+        color: #ddd6fe;
+        border: 1px solid rgba(196, 181, 253, 0.23);
+        font-weight: 800;
+    }
+
+    .demo-triptych {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.55rem;
+        padding: 0.75rem 1.25rem 1rem;
+    }
+
+    .demo-shot {
+        min-width: 0;
+    }
+
+    .demo-shot img {
+        display: block;
+        width: 100%;
+        height: 145px;
+        object-fit: contain;
+        background: #0b1220;
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        border-radius: 12px;
+    }
+
+    .demo-shot .demo-output-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.55rem;
+        width: 100%;
+        height: 145px;
+        padding: 0.5rem;
+        text-align: center;
+        color: #94a3b8;
+        background: linear-gradient(145deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.9));
+        border: 1px dashed rgba(167, 139, 250, 0.4);
+        border-radius: 12px;
+    }
+
+    .demo-output-placeholder i {
+        color: #a78bfa;
+        font-size: 1.4rem;
+    }
+
+    .demo-output-placeholder span {
+        max-width: 130px;
+        font-size: 0.72rem;
+        line-height: 1.45;
+    }
+
+    .demo-shot img.live-output-image[hidden] {
+        display: none !important;
+    }
+
+    .demo-output-placeholder[hidden] {
+        display: none !important;
+    }
+
+    .demo-shot-label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.35rem;
+        margin-top: 0.5rem;
+        color: #b9c5d8;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .demo-shot-label i {
+        color: #a78bfa;
+    }
+
+    .demo-card-bottom {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        padding: 1rem 1.25rem 1.25rem;
+        border-top: 1px solid rgba(148, 163, 184, 0.14);
+    }
+
+    .demo-badge {
+        color: #a7f3d0;
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.22);
+        border-radius: 999px;
+        padding: 0.35rem 0.65rem;
+        font-size: 0.72rem;
+        font-weight: 700;
+    }
+
+    .demo-try-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        border-radius: 999px;
+        padding: 0.65rem 1rem;
+        font-size: 0.86rem;
+        font-weight: 700;
+        color: #fff;
+        border: 1px solid rgba(167, 139, 250, 0.45);
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.95), rgba(168, 85, 247, 0.9));
+    }
+
+    .demo-try-btn:hover,
+    .demo-try-btn:focus {
+        color: #fff;
+        filter: brightness(1.1);
+    }
+
+    .demo-try-btn:disabled {
+        opacity: 0.7;
+        cursor: wait;
+    }
+
+    .demo-notice {
+        display: none;
+        border: 1px solid rgba(129, 140, 248, 0.3);
+        border-radius: 14px;
+        padding: 0.85rem 1rem;
+        margin: 0 0 1.5rem;
+        color: #ddd6fe;
+        background: rgba(79, 70, 229, 0.12);
+    }
+
+    .demo-notice.show {
+        display: block;
+    }
+
+    .guideline-card {
+        height: 100%;
+        padding: 1.35rem;
+        border-radius: 18px;
+        background: rgba(30, 41, 59, 0.7);
+        border: 1px solid rgba(148, 163, 184, 0.18);
+    }
+
+    .guideline-icon {
+        display: grid;
+        place-items: center;
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+        color: #ddd6fe;
+        background: rgba(139, 92, 246, 0.16);
+        border: 1px solid rgba(196, 181, 253, 0.2);
+    }
+
+    .guideline-card h3 {
+        color: #f8fafc;
+        font-size: 1rem;
+        font-weight: 700;
+        margin-bottom: 0.55rem;
+    }
+
+    .guideline-card p {
+        color: #aab7cf;
+        font-size: 0.88rem;
+        line-height: 1.7;
+        margin: 0;
+    }
+
+    .alpha-guide {
+        margin-top: 1.25rem;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        border-radius: 20px;
+        background: rgba(15, 23, 42, 0.75);
+        padding: 1.3rem;
+    }
+
+    .alpha-guide-title {
+        color: #f8fafc;
+        font-weight: 700;
+        margin-bottom: 0.9rem;
+    }
+
+    .alpha-stop {
+        height: 100%;
+        border-radius: 14px;
+        padding: 0.9rem;
+        background: rgba(30, 41, 59, 0.75);
+        border: 1px solid rgba(148, 163, 184, 0.12);
+    }
+
+    .alpha-stop strong {
+        display: block;
+        color: #ddd6fe;
+        font-size: 1rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .alpha-stop span {
+        display: block;
+        color: #aab7cf;
+        font-size: 0.8rem;
+        line-height: 1.55;
+    }
+
+    .tips-strip {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.8rem;
+        margin-top: 1.2rem;
+        padding: 1rem 1.1rem;
+        border-radius: 16px;
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        background: rgba(14, 165, 233, 0.07);
+        color: #cbd5e1;
+        font-size: 0.88rem;
+        line-height: 1.7;
+    }
+
+    .tips-strip i {
+        color: #7dd3fc;
+        margin-top: 0.2rem;
+    }
+
+    .site-footer {
+        margin-top: 5rem;
+        padding: 1.8rem 0;
+        border-top: 1px solid rgba(148, 163, 184, 0.14);
+        color: #8190a8;
+        text-align: center;
+        font-size: 0.8rem;
+    }
+
+    .site-footer strong {
+        color: #c4b5fd;
+    }
+
     .loader-overlay {
         position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
+        inset: 0;
         background: rgba(15, 23, 42, 0.9);
         backdrop-filter: blur(5px);
         z-index: 9999;
@@ -236,12 +623,15 @@
         pointer-events: none;
         transition: opacity 0.3s ease;
     }
+
     .loader-overlay.active {
         opacity: 1;
         pointer-events: all;
     }
+
     .cyber-spinner {
-        width: 80px; height: 80px;
+        width: 80px;
+        height: 80px;
         border: 4px solid transparent;
         border-top: 4px solid #818cf8;
         border-right: 4px solid #c084fc;
@@ -249,278 +639,1265 @@
         animation: spin 1s linear infinite;
         box-shadow: 0 0 15px rgba(129, 140, 248, 0.5);
     }
+
     @keyframes spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
     }
-    .navbar {
-        background: rgba(15, 23, 42, 0.8);
-        backdrop-filter: blur(10px);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    }
-    .navbar-brand {
-        font-family: 'Orbitron', sans-serif;
-        font-weight: 700;
-        font-size: 1.5rem;
-        background: linear-gradient(to right, #818cf8, #c084fc);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-    .nav-link {
-        color: #e2e8f0 !important;
-        font-weight: 500;
-        margin-left: 1rem;
-    }
-    .footer-section {
-        background: rgba(15, 23, 42, 0.95);
-        border-top: 1px solid rgba(255, 255, 255, 0.05);
-        padding: 3rem 0 1.5rem;
-        margin-top: 4rem;
-        color: #94a3b8;
-    }
-    .footer-section h5 {
-        color: #f8fafc;
-        font-family: 'Orbitron', sans-serif;
-        margin-bottom: 1rem;
-        font-size: 1rem;
-    }
-    .footer-link {
-        color: #94a3b8;
-        text-decoration: none;
-        display: block;
-        margin-bottom: 0.5rem;
-    }
-    .examples-section .example-image {
-        width: 100%;
-        height: 200px;
-        object-fit: contain;
-        border-radius: 10px;
-        background: rgba(15, 23, 42, 0.8);
-    }
-    .examples-section .example-flow {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        padding: 1rem;
-        border-radius: 15px;
-        background: rgba(15, 23, 42, 0.45);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-    }
-    .faq-section .accordion-item {
-        background: rgba(30, 41, 59, 0.6);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        margin-bottom: 0.5rem;
-        border-radius: 10px;
-        overflow: hidden;
-    }
-    .faq-section .accordion-button {
-        background: rgba(15, 23, 42, 0.75);
-        color: #e2e8f0;
-        font-weight: 600;
+
+    @media (max-width: 767px) {
+        .header-section {
+            padding-top: 6.5rem;
+        }
+
+        .header-section h1 {
+            font-size: 2.1rem;
+        }
+
+        .page-section {
+            margin-top: 3.5rem;
+        }
+
+        .demo-triptych {
+            gap: 0.35rem;
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+        }
+
+        .demo-shot img,
+        .demo-shot .demo-output-placeholder {
+            height: 100px;
+        }
+
+        .demo-shot-label {
+            font-size: 0.6rem;
+            letter-spacing: 0;
+        }
+
+        .demo-card-top,
+        .demo-card-bottom {
+            padding-left: 0.9rem;
+            padding-right: 0.9rem;
+        }
     }
 </style>
 </head>
+
 <body>
 
-<canvas id="neuralCanvas"></canvas>
-<div class="scanlines"></div>
-<div class="orb orb-1"></div>
-<div class="orb orb-2"></div>
+<!-- NAVIGATION -->
 
 <nav class="navbar navbar-expand-lg fixed-top">
     <div class="container">
-        <a class="navbar-brand" href="#"><i class="fas fa-brain me-2"></i>NeuralArt</a>
-        <button class="navbar-toggler navbar-dark" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <a class="navbar-brand" href="#home">
+            <i class="fas fa-brain me-2"></i>NeuralArt
+        </a>
+
+        <button
+            class="navbar-toggler navbar-dark"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav"
+            aria-controls="navbarNav"
+            aria-expanded="false"
+            aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
+
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link" href="#">Home</a></li>
-                <li class="nav-item"><a class="nav-link" href="#">Gallery</a></li>
-                <li class="nav-item"><a class="nav-link" href="#">Features</a></li>
-                <li class="nav-item"><a class="nav-link" href="#">Contact</a></li>
+                <li class="nav-item"><a class="nav-link" href="#home">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="#demos">Demo Gallery</a></li>
+                <li class="nav-item"><a class="nav-link" href="#guidelines">Guidelines</a></li>
             </ul>
         </div>
     </div>
 </nav>
 
-<div class="header-section">
+<!-- HERO -->
+
+<header class="header-section" id="home">
     <div class="container">
         <h1>STYLEFORGE AI</h1>
-        <p class="lead">Redefine Reality with AI-Powered Artistry</p>
+
+        <p class="lead">
+            Turn a content photo into art using the style reference you choose.
+        </p>
+
+        <div class="header-actions">
+            <a class="btn-soft" href="#demos">
+                <i class="fas fa-images"></i> Explore live demos
+            </a>
+
+            <a class="btn-soft" href="#guidelines">
+                <i class="fas fa-compass"></i> Quick guidelines
+            </a>
+        </div>
     </div>
-</div>
+</header>
+
+<!-- =====================================================
+     MAIN STYLE TRANSFER FORM
+     Existing upload / alpha / result flow is preserved.
+     ===================================================== -->
 
 <div class="container mb-5">
+
     <form method="post" enctype="multipart/form-data" id="uploadForm">
+
         {{ form.hidden_tag() }}
 
         <input type="hidden" name="content_path" value="{{ content_image or '' }}">
         <input type="hidden" name="style_path" value="{{ style_image or '' }}">
-        
+
         <div class="row g-4">
-            <!-- Content Image Section -->
+
+            <!-- CONTENT IMAGE -->
+
             <div class="col-md-6">
                 <div class="card h-100">
-                    <div class="card-header text-center py-3">Content Source</div>
+
+                    <div class="card-header text-center py-3">
+                        Content Source
+                    </div>
+
                     <div class="card-body text-center">
+
                         <div class="preview-image mb-3" id="contentPreview">
+
                             {% if content_image %}
-                                <img src="{{ url_for('send_image', filename=content_image) }}" alt="Content Image">
+                                <img
+                                    src="{{ url_for('send_image', filename=content_image) }}"
+                                    alt="Content Image">
                             {% else %}
                                 <span>Select Content Image</span>
                             {% endif %}
+
                         </div>
-                        {{ form.content(class="form-control", onchange="previewFile(this, 'contentPreview')") }}
+
+                        {{ form.content(
+                            class="form-control",
+                            onchange="previewFile(this, 'contentPreview')"
+                        ) }}
+
                     </div>
                 </div>
             </div>
 
-            <!-- Style Image Section -->
+            <!-- STYLE IMAGE -->
+
             <div class="col-md-6">
                 <div class="card h-100">
-                    <div class="card-header text-center py-3">Style Reference</div>
+
+                    <div class="card-header text-center py-3">
+                        Style Reference
+                    </div>
+
                     <div class="card-body text-center">
+
                         <div class="preview-image mb-3" id="stylePreview">
+
                             {% if style_image %}
-                                <img src="{{ url_for('send_image', filename=style_image) }}" alt="Style Image">
+                                <img
+                                    src="{{ url_for('send_image', filename=style_image) }}"
+                                    alt="Style Image">
                             {% else %}
                                 <span>Select Style Image</span>
                             {% endif %}
+
                         </div>
-                        {{ form.style(class="form-control", onchange="previewFile(this, 'stylePreview')") }}
+
+                        {{ form.style(
+                            class="form-control",
+                            onchange="previewFile(this, 'stylePreview')"
+                        ) }}
+
                     </div>
                 </div>
             </div>
+
         </div>
 
-        <!-- Controls Section -->
+        <!-- ALPHA SLIDER -->
+
         <div class="row justify-content-center mt-4">
+
             <div class="col-md-8">
+
                 <div class="range-wrap">
-                    <label for="alpha" class="form-label fw-bold mb-3 d-block text-center" style="font-family: 'Orbitron', sans-serif; letter-spacing: 1px; color: #a855f7;">STYLE STRENGTH</label>
+
+                    <label
+                        for="alphaRange"
+                        class="form-label fw-bold mb-3 d-block text-center"
+                        style="font-family:'Orbitron',sans-serif;letter-spacing:1px;color:#a855f7;">
+                        STYLE STRENGTH
+                    </label>
+
                     <div class="position-relative">
-                        <div class="range-value" id="rangeValue">{{ alpha }}</div>
-                        <input type="range" name="alpha" id="alphaRange" class="form-control-range" min="0" max="1" step="0.1" value="{{ alpha }}">
+
+                        <div class="range-value" id="rangeValue">
+                            {{ alpha }}
+                        </div>
+
+                        <input
+                            type="range"
+                            name="alpha"
+                            id="alphaRange"
+                            class="form-control-range"
+                            min="0"
+                            max="1"
+                            step="0.05"
+                            value="{{ alpha }}"
+                            aria-label="Style strength">
+
                     </div>
                 </div>
+
                 <div class="text-center mt-5">
                     {{ form.submit(class="btn btn-primary shadow-lg btn-glow") }}
                 </div>
+
             </div>
         </div>
+
     </form>
 
+    <!-- MAIN RESULT -->
+
     {% if result_image %}
+
     <div class="row justify-content-center mt-5" id="resultSection">
+
         <div class="col-md-8">
+
             <div class="card border-success">
-                <div class="card-header bg-success text-white fw-bold text-center py-3" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">Stylized Result</div>
+
+                <div
+                    class="card-header text-white fw-bold text-center py-3"
+                    style="background:linear-gradient(135deg,#10b981 0%,#059669 100%);">
+                    Stylized Result
+                </div>
+
                 <div class="card-body p-3">
-                    <img id="resultImgElement" src="{{ url_for('send_image', filename=result_image) }}" class="img-fluid" alt="Stylized Image">
+
+                    <img
+                        id="resultImgElement"
+                        src="{{ url_for('send_image', filename=result_image) }}"
+                        class="img-fluid"
+                        alt="Stylized Image">
+
                 </div>
+
                 <div class="card-footer text-center bg-transparent border-0 pb-3">
-                    <a id="downloadBtn" href="{{ url_for('send_image', filename=result_image) }}" download class="btn btn-outline-light mt-2">Download Result</a>
+
+                    <a
+                        id="downloadBtn"
+                        href="{{ url_for('send_image', filename=result_image) }}"
+                        download
+                        class="btn btn-outline-light mt-2">
+
+                        <i class="fas fa-download me-2"></i>Download Result
+
+                    </a>
+
                 </div>
+
             </div>
+
         </div>
     </div>
+
     {% endif %}
 
     {% if error %}
-        <div class="alert alert-danger mt-4 text-center" role="alert" style="background: rgba(220, 38, 38, 0.2); border-color: #dc2626; color: #fecaca;">
+
+        <div
+            class="alert alert-danger mt-4 text-center"
+            role="alert"
+            style="background:rgba(220,38,38,.2);border-color:#dc2626;color:#fecaca;">
+
             <strong>Error:</strong> {{ error }}
+
         </div>
+
     {% endif %}
+
 </div>
 
-<!-- Loading Overlay -->
+<!-- =====================================================
+     DEMO GALLERY
+     Demo 1: Taxi photo + landscape painting.
+     Demo 2: Cow photo + cityscape painting.
+     Each output is generated by the actual current model.
+     ===================================================== -->
+
+<section
+    class="container page-section"
+    id="demos"
+    aria-labelledby="demosTitle">
+
+    <div class="section-heading">
+
+        <span class="section-kicker">
+            <i class="fas fa-wand-magic-sparkles"></i>
+            Learn by example
+        </span>
+
+        <h2 id="demosTitle">Explore the Demo Gallery</h2>
+
+        <p>
+            Pick a ready-made content photo and painting reference.
+            Generate a real output with your current model, then compare
+            the content, style, and result side by side.
+        </p>
+
+    </div>
+
+    <div
+        class="demo-notice"
+        id="demoNotice"
+        role="status"
+        aria-live="polite">
+    </div>
+
+    <div class="row g-4">
+
+        <!-- DEMO 01: TAXI + LANDSCAPE -->
+
+        <div class="col-lg-6">
+
+            <article class="demo-card" id="demoCardTaxi">
+
+                <div class="demo-card-top">
+
+                    <div>
+                        <h3>Demo 01 · City Photo to Landscape Art</h3>
+
+                        <p>
+                            A street photograph paired with a soft,
+                            green landscape painting.
+                        </p>
+                    </div>
+
+                    <span class="demo-number">01</span>
+
+                </div>
+
+                <div class="demo-triptych">
+
+                    <div class="demo-shot">
+
+                        <img
+                            src="{{ url_for('send_examples', filename='demo_taxi_content.jpg') }}"
+                            alt="Taxi photograph used as content input"
+                            loading="lazy">
+
+                        <div class="demo-shot-label">
+                            <i class="fas fa-image"></i> Content
+                        </div>
+
+                    </div>
+
+                    <div class="demo-shot">
+
+                        <img
+                            src="{{ url_for('send_examples', filename='demo_landscape_style.jpg') }}"
+                            alt="Green landscape painting used as style reference"
+                            loading="lazy">
+
+                        <div class="demo-shot-label">
+                            <i class="fas fa-palette"></i> Style
+                        </div>
+
+                    </div>
+
+                    <div class="demo-shot">
+
+                        <div
+                            class="demo-output-placeholder"
+                            id="demoTaxiOutputPlaceholder">
+
+                            <i class="fas fa-sparkles"></i>
+
+                            <span>
+                                Run this demo to generate a live result
+                            </span>
+
+                        </div>
+
+                        <img
+                            id="demoTaxiOutput"
+                            class="live-output-image"
+                            src=""
+                            alt="Live generated output for taxi and landscape demo"
+                            loading="lazy"
+                            hidden>
+
+                        <div class="demo-shot-label">
+                            <i class="fas fa-wand-magic-sparkles"></i>
+                            Live output
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="demo-card-bottom">
+
+                    <span class="demo-badge" id="demoTaxiBadge">
+                        <i class="fas fa-bolt me-1"></i>
+                        Live model demo
+                    </span>
+
+                    <button
+                        type="button"
+                        class="demo-try-btn"
+                        data-demo="taxi"
+                        data-output-target="demoTaxiOutput"
+                        data-placeholder-target="demoTaxiOutputPlaceholder"
+                        data-badge-target="demoTaxiBadge"
+                        data-content-url="{{ url_for('send_examples', filename='demo_taxi_content.jpg') }}"
+                        data-style-url="{{ url_for('send_examples', filename='demo_landscape_style.jpg') }}"
+                        data-content-name="demo_taxi_content.jpg"
+                        data-style-name="demo_landscape_style.jpg"
+                        data-alpha="0.5">
+
+                        <i class="fas fa-play"></i> Generate demo
+
+                    </button>
+
+                </div>
+
+            </article>
+
+        </div>
+
+        <!-- DEMO 02: COW + CITYSCAPE -->
+
+        <div class="col-lg-6">
+
+            <article class="demo-card" id="demoCardCow">
+
+                <div class="demo-card-top">
+
+                    <div>
+                        <h3>Demo 02 · Photo to Classic Painting</h3>
+
+                        <p>
+                            A countryside animal photograph paired with
+                            a detailed, historic city painting.
+                        </p>
+                    </div>
+
+                    <span class="demo-number">02</span>
+
+                </div>
+
+                <div class="demo-triptych">
+
+                    <div class="demo-shot">
+
+                        <img
+                            src="{{ url_for('send_examples', filename='demo_cow_content.jpg') }}"
+                            alt="Cow photograph used as content input"
+                            loading="lazy">
+
+                        <div class="demo-shot-label">
+                            <i class="fas fa-image"></i> Content
+                        </div>
+
+                    </div>
+
+                    <div class="demo-shot">
+
+                        <img
+                            src="{{ url_for('send_examples', filename='demo_city_style.jpg') }}"
+                            alt="Historic cityscape painting used as style reference"
+                            loading="lazy">
+
+                        <div class="demo-shot-label">
+                            <i class="fas fa-palette"></i> Style
+                        </div>
+
+                    </div>
+
+                    <div class="demo-shot">
+
+                        <div
+                            class="demo-output-placeholder"
+                            id="demoCowOutputPlaceholder">
+
+                            <i class="fas fa-sparkles"></i>
+
+                            <span>
+                                Run this demo to generate a live result
+                            </span>
+
+                        </div>
+
+                        <img
+                            id="demoCowOutput"
+                            class="live-output-image"
+                            src=""
+                            alt="Live generated output for cow and cityscape demo"
+                            loading="lazy"
+                            hidden>
+
+                        <div class="demo-shot-label">
+                            <i class="fas fa-wand-magic-sparkles"></i>
+                            Live output
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="demo-card-bottom">
+
+                    <span class="demo-badge" id="demoCowBadge">
+                        <i class="fas fa-bolt me-1"></i>
+                        Live model demo
+                    </span>
+
+                    <button
+                        type="button"
+                        class="demo-try-btn"
+                        data-demo="cow"
+                        data-output-target="demoCowOutput"
+                        data-placeholder-target="demoCowOutputPlaceholder"
+                        data-badge-target="demoCowBadge"
+                        data-content-url="{{ url_for('send_examples', filename='demo_cow_content.jpg') }}"
+                        data-style-url="{{ url_for('send_examples', filename='demo_city_style.jpg') }}"
+                        data-content-name="demo_cow_content.jpg"
+                        data-style-name="demo_city_style.jpg"
+                        data-alpha="0.5">
+
+                        <i class="fas fa-play"></i> Generate demo
+
+                    </button>
+
+                </div>
+
+            </article>
+
+        </div>
+
+    </div>
+
+    <p
+        class="text-center mt-3 mb-0"
+        style="color:#8190a8;font-size:.8rem;line-height:1.6;">
+
+        The output area starts empty on purpose. Clicking “Generate demo”
+        runs your current model, so the preview reflects the actual
+        checkpoint instead of an unrelated pre-made image.
+
+    </p>
+
+</section>
+
+<!-- =====================================================
+     GUIDELINES
+     ===================================================== -->
+
+<section
+    class="container page-section"
+    id="guidelines"
+    aria-labelledby="guidelinesTitle">
+
+    <div class="section-heading">
+
+        <span class="section-kicker">
+            <i class="fas fa-lightbulb"></i>
+            Quick start
+        </span>
+
+        <h2 id="guidelinesTitle">Create a Better Result</h2>
+
+        <p>
+            Three simple steps to get started, plus a practical guide
+            for choosing the alpha value.
+        </p>
+
+    </div>
+
+    <div class="row g-3">
+
+        <div class="col-md-4">
+
+            <article class="guideline-card">
+
+                <div class="guideline-icon">
+                    <i class="fas fa-user-astronaut"></i>
+                </div>
+
+                <h3>01 · Choose your content</h3>
+
+                <p>
+                    Upload the photo you want to transform. Start with
+                    a sharp, well-lit image where the main subject is
+                    easy to see. For portraits, keep the face unobstructed.
+                </p>
+
+            </article>
+
+        </div>
+
+        <div class="col-md-4">
+
+            <article class="guideline-card">
+
+                <div class="guideline-icon">
+                    <i class="fas fa-palette"></i>
+                </div>
+
+                <h3>02 · Choose a style reference</h3>
+
+                <p>
+                    Select a painting, illustration, or textured image
+                    whose colours and brushwork you want to borrow.
+                    The style image guides the artistic appearance.
+                </p>
+
+            </article>
+
+        </div>
+
+        <div class="col-md-4">
+
+            <article class="guideline-card">
+
+                <div class="guideline-icon">
+                    <i class="fas fa-sliders"></i>
+                </div>
+
+                <h3>03 · Set strength and generate</h3>
+
+                <p>
+                    Move the Style Strength slider, then press
+                    <strong>Transfer Style</strong>. Wait for processing
+                    to finish, review the result, and use Download Result.
+                </p>
+
+            </article>
+
+        </div>
+
+    </div>
+
+    <div class="alpha-guide">
+
+        <div class="alpha-guide-title">
+            <i class="fas fa-gauge-high me-2" style="color:#c4b5fd;"></i>
+            Alpha guide · Choose a starting point
+        </div>
+
+        <div class="row g-2">
+
+            <div class="col-6 col-lg-3">
+
+                <div class="alpha-stop">
+                    <strong>0.00</strong>
+                    <span>
+                        Original content photo. No style transfer is applied.
+                    </span>
+                </div>
+
+            </div>
+
+            <div class="col-6 col-lg-3">
+
+                <div class="alpha-stop">
+                    <strong>0.15–0.35</strong>
+                    <span>
+                        Subtle starting range when you want to retain more
+                        of the original appearance.
+                    </span>
+                </div>
+
+            </div>
+
+            <div class="col-6 col-lg-3">
+
+                <div class="alpha-stop">
+                    <strong>0.40–0.65</strong>
+                    <span>
+                        A balanced range to explore content and style together.
+                    </span>
+                </div>
+
+            </div>
+
+            <div class="col-6 col-lg-3">
+
+                <div class="alpha-stop">
+                    <strong>0.70–1.00</strong>
+                    <span>
+                        Strong stylization. Fine details and facial features
+                        may change more.
+                    </span>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="tips-strip">
+
+            <i class="fas fa-circle-info"></i>
+
+            <div>
+                <strong>Helpful tip:</strong>
+                Every content/style pair behaves differently. For portraits,
+                try a lower alpha first and increase it gradually. The live
+                result may differ depending on the current model and alpha.
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- FOOTER -->
+
+<footer class="site-footer">
+
+    <div class="container">
+        Made with <strong>AdaIN</strong> · Choose a pair, experiment with
+        strength, and create your own style transfer.
+    </div>
+
+</footer>
+
+<!-- PROCESSING OVERLAY -->
+
 <div class="loader-overlay" id="loader">
+
     <div class="cyber-spinner mb-4"></div>
-    <h3 class="text-white" style="font-family: 'Orbitron', sans-serif; letter-spacing: 2px;">PROCESSING</h3>
+
+    <h3
+        class="text-white"
+        style="font-family:'Orbitron',sans-serif;letter-spacing:2px;">
+        PROCESSING
+    </h3>
+
     <p class="text-muted">Neural Network is dreaming...</p>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
+    // =====================================================
+    // IMAGE PREVIEW
+    // =====================================================
+
     function previewFile(input, previewId) {
         const preview = document.getElementById(previewId);
-        const file = input.files[0];
+        const file = input.files && input.files[0];
+
+        if (!preview || !file) {
+            return;
+        }
+
         const reader = new FileReader();
+
         reader.addEventListener("load", function () {
             preview.innerHTML = `<img src="${reader.result}" alt="Image Preview">`;
-        }, false);
-        if (file) { reader.readAsDataURL(file); }
+        });
+
+        reader.readAsDataURL(file);
     }
 
-    window.onload = function() {
-        document.getElementById('uploadForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const loader = document.getElementById('loader');
-            if (loader) loader.classList.add('active');
 
-            const formData = new FormData(this);
+    // =====================================================
+    // DEMO FILE HELPERS
+    // =====================================================
 
-            fetch('/', {
-                method: 'POST',
-                body: formData,
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (loader) loader.classList.remove('active');
-                if (data.success) {
-                    let resultSection = document.getElementById('resultSection');
+    async function fetchAsFile(url, filename) {
+        const response = await fetch(url, {
+            cache: "no-store"
+        });
+
+        if (!response.ok) {
+            throw new Error(`Could not load demo asset: ${filename}`);
+        }
+
+        const blob = await response.blob();
+
+        const fallbackType = filename.toLowerCase().endsWith(".png")
+            ? "image/png"
+            : "image/jpeg";
+
+        return new File(
+            [blob],
+            filename,
+            { type: blob.type || fallbackType }
+        );
+    }
+
+
+    function setFileInput(input, file) {
+        if (!window.DataTransfer) {
+            throw new Error(
+                "This browser cannot load demo files automatically. Please upload the two images manually."
+            );
+        }
+
+        const transfer = new DataTransfer();
+        transfer.items.add(file);
+
+        input.files = transfer.files;
+
+        input.dispatchEvent(
+            new Event("change", { bubbles: true })
+        );
+    }
+
+
+    // =====================================================
+    // PAGE INTERACTIONS
+    // =====================================================
+
+    window.addEventListener("DOMContentLoaded", function () {
+
+        const uploadForm = document.getElementById("uploadForm");
+        const loader = document.getElementById("loader");
+        const range = document.getElementById("alphaRange");
+        const rangeValue = document.getElementById("rangeValue");
+
+        const contentInput = document.querySelector('input[name="content"]');
+        const styleInput = document.querySelector('input[name="style"]');
+
+        const demoNotice = document.getElementById("demoNotice");
+
+        let activeDemoOutputId = null;
+        let activeDemoPlaceholderId = null;
+        let activeDemoBadgeId = null;
+        let activeDemoButton = null;
+        let activeDemoButtonDefaultHtml = null;
+
+
+        // ------------------------------
+        // Alpha slider label
+        // ------------------------------
+
+        function updateRange() {
+            if (!range || !rangeValue) {
+                return;
+            }
+
+            const val = Number(range.value);
+
+            rangeValue.textContent = val
+                .toFixed(2)
+                .replace(/0+$/, "")
+                .replace(/\.$/, "");
+
+            rangeValue.style.left = `${val * 100}%`;
+        }
+
+
+        function setNotice(message, show = true) {
+            if (!demoNotice) {
+                return;
+            }
+
+            demoNotice.textContent = message;
+            demoNotice.classList.toggle("show", show);
+        }
+
+
+        function resetActiveDemoButton(success = false) {
+            if (activeDemoButton) {
+                activeDemoButton.disabled = false;
+
+                activeDemoButton.innerHTML = success
+                    ? '<i class="fas fa-rotate"></i> Run demo again'
+                    : (
+                        activeDemoButtonDefaultHtml ||
+                        '<i class="fas fa-play"></i> Generate demo'
+                    );
+            }
+
+            activeDemoButton = null;
+            activeDemoButtonDefaultHtml = null;
+        }
+
+
+        if (range) {
+            range.addEventListener("input", updateRange);
+            updateRange();
+        }
+
+
+        // =================================================
+        // GENERATE DEMO USING REAL BACKEND
+        // =================================================
+
+        document.querySelectorAll(".demo-try-btn").forEach((button) => {
+
+            button.addEventListener("click", async function () {
+
+                if (!uploadForm || !contentInput || !styleInput) {
+                    alert(
+                        "Upload form could not be found. Please refresh the page."
+                    );
+                    return;
+                }
+
+                if (button.disabled) {
+                    return;
+                }
+
+                // Do not allow two demo jobs to overwrite the active state.
+                if (activeDemoButton) {
+                    return;
+                }
+
+                button.disabled = true;
+                activeDemoButton = button;
+                activeDemoButtonDefaultHtml = button.innerHTML;
+
+                button.innerHTML =
+                    '<i class="fas fa-spinner fa-spin"></i> Preparing demo...';
+
+                try {
+
+                    const [contentFile, styleFile] = await Promise.all([
+
+                        fetchAsFile(
+                            button.dataset.contentUrl,
+                            button.dataset.contentName
+                        ),
+
+                        fetchAsFile(
+                            button.dataset.styleUrl,
+                            button.dataset.styleName
+                        )
+
+                    ]);
+
+                    // Put the selected demo images into the main form.
+                    setFileInput(contentInput, contentFile);
+                    setFileInput(styleInput, styleFile);
+
+                    // Set a sensible starting alpha for the demo.
+                    if (range) {
+                        range.value = button.dataset.alpha || "0.5";
+                        updateRange();
+                    }
+
+                    activeDemoOutputId =
+                        button.dataset.outputTarget || null;
+
+                    activeDemoPlaceholderId =
+                        button.dataset.placeholderTarget || null;
+
+                    activeDemoBadgeId =
+                        button.dataset.badgeTarget || null;
+
+                    button.innerHTML =
+                        '<i class="fas fa-spinner fa-spin"></i> Generating output...';
+
+                    setNotice(
+                        "Generating a fresh result with your current AdaIN model. The live output will appear in this demo card."
+                    );
+
+                    // Use the existing main form submission pipeline.
+                    uploadForm.requestSubmit();
+
+                } catch (error) {
+
+                    console.error(
+                        "Demo generation could not start:",
+                        error
+                    );
+
+                    setNotice(
+                        error.message || "Could not load the demo pair."
+                    );
+
+                    resetActiveDemoButton(false);
+
+                    activeDemoOutputId = null;
+                    activeDemoPlaceholderId = null;
+                    activeDemoBadgeId = null;
+
+                    alert(
+                        error.message ||
+                        "Could not load this demo. Please upload both images manually."
+                    );
+
+                }
+
+            });
+
+        });
+
+
+        // =================================================
+        // EXISTING AJAX STYLE TRANSFER
+        // =================================================
+
+        if (uploadForm) {
+
+            uploadForm.addEventListener("submit", async function (event) {
+
+                event.preventDefault();
+
+                if (loader) {
+                    loader.classList.add("active");
+                }
+
+                const submitButton = uploadForm.querySelector(
+                    'button[type="submit"], input[type="submit"]'
+                );
+
+                if (submitButton) {
+                    submitButton.disabled = true;
+                }
+
+                try {
+
+                    const formData = new FormData(uploadForm);
+
+                    const response = await fetch("/", {
+                        method: "POST",
+                        body: formData,
+                        headers: {
+                            "X-Requested-With": "XMLHttpRequest"
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok || !data.success) {
+                        throw new Error(
+                            data.error ||
+                            `Request failed (${response.status})`
+                        );
+                    }
+
+
+                    // --------------------------------------
+                    // Main result panel
+                    // --------------------------------------
+
+                    let resultSection =
+                        document.getElementById("resultSection");
+
                     if (!resultSection) {
-                        const container = document.querySelector('.container.mb-5');
-                        const newDiv = document.createElement('div');
-                        newDiv.className = 'row justify-content-center mt-5';
-                        newDiv.id = 'resultSection';
+
+                        const container =
+                            document.querySelector(".container.mb-5");
+
+                        if (!container) {
+                            throw new Error(
+                                "Could not find the results container."
+                            );
+                        }
+
+                        const newDiv = document.createElement("div");
+
+                        newDiv.className =
+                            "row justify-content-center mt-5";
+
+                        newDiv.id = "resultSection";
+
                         newDiv.innerHTML = `
                             <div class="col-md-8">
                                 <div class="card border-success">
-                                    <div class="card-header bg-success text-white fw-bold text-center py-3" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">Stylized Result</div>
+
+                                    <div
+                                        class="card-header text-white fw-bold text-center py-3"
+                                        style="background:linear-gradient(135deg,#10b981 0%,#059669 100%);">
+                                        Stylized Result
+                                    </div>
+
                                     <div class="card-body p-3">
-                                        <img id="resultImgElement" src="${data.result_image_url}" class="img-fluid" alt="Stylized Image">
+                                        <img
+                                            id="resultImgElement"
+                                            src=""
+                                            class="img-fluid"
+                                            alt="Stylized Image">
                                     </div>
+
                                     <div class="card-footer text-center bg-transparent border-0 pb-3">
-                                        <a id="downloadBtn" href="${data.result_image_url}" download class="btn btn-outline-light mt-2">Download Result</a>
+                                        <a
+                                            id="downloadBtn"
+                                            href=""
+                                            download
+                                            class="btn btn-outline-light mt-2">
+                                            <i class="fas fa-download me-2"></i>Download Result
+                                        </a>
                                     </div>
+
                                 </div>
                             </div>`;
+
                         container.appendChild(newDiv);
-                    } else {
-                        document.getElementById('resultImgElement').src = data.result_image_url + '?t=' + new Date().getTime();
-                        document.getElementById('downloadBtn').href = data.result_image_url;
+
+                        resultSection = newDiv;
                     }
 
-                    document.querySelector('input[name="content_path"]').value = data.content_path;
-                    document.querySelector('input[name="style_path"]').value = data.style_path;
-                    document.getElementById('resultSection').scrollIntoView({behavior: "smooth"});
-                } else {
-                    alert('Error: ' + (data.error || 'Something went wrong'));
-                }
-            })
-            .catch(error => {
-                if (loader) loader.classList.remove('active');
-                console.error('Error:', error);
-            });
-        });
 
-        // Range Slider Logic
-        const range = document.getElementById('alphaRange');
-        const rangeValue = document.getElementById('rangeValue');
-        function updateRange() {
-            const val = range.value;
-            rangeValue.textContent = val;
-            const percentage = (val * 100);
-            rangeValue.style.left = percentage + '%';
+                    // Cache-busting ensures the latest image is shown.
+                    const separator =
+                        data.result_image_url.includes("?") ? "&" : "?";
+
+                    const freshResultUrl =
+                        data.result_image_url +
+                        separator +
+                        "t=" +
+                        Date.now();
+
+                    const resultImg =
+                        document.getElementById("resultImgElement");
+
+                    const downloadBtn =
+                        document.getElementById("downloadBtn");
+
+                    if (resultImg) {
+                        resultImg.src = freshResultUrl;
+                    }
+
+                    if (downloadBtn) {
+                        downloadBtn.href = data.result_image_url;
+                    }
+
+
+                    // --------------------------------------
+                    // Keep hidden paths synchronized
+                    // --------------------------------------
+
+                    document.querySelectorAll(
+                        'input[name="content_path"]'
+                    ).forEach((input) => {
+                        input.value = data.content_path;
+                    });
+
+                    document.querySelectorAll(
+                        'input[name="style_path"]'
+                    ).forEach((input) => {
+                        input.value = data.style_path;
+                    });
+
+
+                    // --------------------------------------
+                    // Show actual model result in demo card
+                    // --------------------------------------
+
+                    if (activeDemoOutputId) {
+
+                        const outputImage =
+                            document.getElementById(activeDemoOutputId);
+
+                        const placeholder =
+                            activeDemoPlaceholderId
+                                ? document.getElementById(
+                                    activeDemoPlaceholderId
+                                )
+                                : null;
+
+                        const badge =
+                            activeDemoBadgeId
+                                ? document.getElementById(
+                                    activeDemoBadgeId
+                                )
+                                : null;
+
+                        if (outputImage) {
+                            outputImage.src = freshResultUrl;
+                            outputImage.hidden = false;
+                        }
+
+                        if (placeholder) {
+                            placeholder.hidden = true;
+                        }
+
+                        if (badge) {
+                            badge.innerHTML =
+                                '<i class="fas fa-check-circle me-1"></i> Live result generated';
+                        }
+
+                        const outputCard = outputImage
+                            ? outputImage.closest(".demo-card")
+                            : null;
+
+                        setNotice(
+                            "Demo complete. Compare the content, style reference, and live output. You can run this demo again or adjust alpha in the main form."
+                        );
+
+                        resetActiveDemoButton(true);
+
+                        activeDemoOutputId = null;
+                        activeDemoPlaceholderId = null;
+                        activeDemoBadgeId = null;
+
+                        if (outputCard) {
+                            outputCard.scrollIntoView({
+                                behavior: "smooth",
+                                block: "center"
+                            });
+                        }
+
+                    } else {
+
+                        setNotice(
+                            "Your style-transfer result is ready.",
+                            false
+                        );
+
+                        resultSection.scrollIntoView({
+                            behavior: "smooth",
+                            block: "start"
+                        });
+
+                    }
+
+                } catch (error) {
+
+                    console.error(
+                        "Style transfer request failed:",
+                        error
+                    );
+
+                    setNotice(
+                        error.message ||
+                        "Could not complete style transfer. Please try again."
+                    );
+
+                    resetActiveDemoButton(false);
+
+                    activeDemoOutputId = null;
+                    activeDemoPlaceholderId = null;
+                    activeDemoBadgeId = null;
+
+                    alert(
+                        error.message ||
+                        "Could not complete style transfer. Please try again."
+                    );
+
+                } finally {
+
+                    if (loader) {
+                        loader.classList.remove("active");
+                    }
+
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                    }
+
+                }
+
+            });
+
         }
-        if(range) {
-            range.addEventListener('input', updateRange);
-            updateRange();
-        }
-    }
+
+    });
 </script>
+
 </body>
 </html>
