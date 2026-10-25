@@ -65,9 +65,8 @@ decoder = Decoder().to(device)
 
 decoder.load_state_dict(
     torch.load(
-        DECODER_PATH,
-        map_location=device,
-        weights_only=True
+        '/Users/akshaypal/FIRST_NST.PJ/experiment/big_dataset/decoder_10.pth', # Yahan apna naya path ya decoder_20.pth daal de
+        map_location=device
     )
 )
 
@@ -187,4 +186,4 @@ if len(all_images) > 0:
     print("================================")
 
 else:
-     print("No images generated.")
+    print("No images generated.")

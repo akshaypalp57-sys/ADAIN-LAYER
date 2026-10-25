@@ -109,7 +109,7 @@ def main():
         decoder.load_state_dict(torch.load(args.decoder_path))
         optimizer.load_state_dict(torch.load(args.optimizer_path))
 
-    print('Training...')
+    print('Training with Alpha Blending Support...')
 
     mse_loss = torch.nn.MSELoss()
 
@@ -135,13 +135,20 @@ def main():
             c_feats = encoder(content_batch)
             s_feats = encoder(style_batch)
 
+            # 1. Standard AdaIN target
             t = adaptive_instance_normalization(c_feats[-1], s_feats[-1])
 
-            g = decoder(t)
+            # 2. TRAINING WITH RANDOM ALPHA (Slider support fix)
+            # Har batch mein random alpha generate karo taaki decoder blending sikh sake
+            alpha = torch.rand(content_batch.size(0), 1, 1, 1).to(device)
+            t_interpolated = alpha * t + (1 - alpha) * c_feats[-1]
+
+            # 3. Blended features ko decoder mein pass karo
+            g = decoder(t_interpolated)
 
             g_feats = encoder(g)
 
-            loss_c = mse_loss(g_feats[-1], t) * args.content_weight
+            loss_c = mse_loss(g_feats[-1], t_interpolated) * args.content_weight
 
             loss_s = 0
             for g_f, s_f in zip(g_feats, s_feats):
@@ -150,9 +157,7 @@ def main():
                 loss_s += mse_loss(g_mean, s_mean) + mse_loss(g_std, s_std)
             
             loss_s = loss_s * args.style_weight
-
             loss = loss_c + loss_s
-
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()

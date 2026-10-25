@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+!.env.template
+*.pem
+*.p12
+*.pfx
+.DS_Store
+__pycache__/
+*.py[cod]
+*.save
+.venv/
+venv/
